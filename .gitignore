@@ -20,3 +20,10 @@ __pycache__/
 # --- FreeCAD / editor scratch --------------------------------------------- #
 *.FCStd1
 *.swp
+
+# --- Autodesk Inventor (native binary; regenerable from scripts) ----------- #
+# Keep the STEP (portable, the deliverable); the .ipt and Inventor backups are
+# large and reproducible via scripts/caseC_inventor.py.
+*.ipt
+*.iam
+OldVersions/

@@ -10,7 +10,10 @@ Autodesk 移行 [10_autodesk_cfd.md](10_autodesk_cfd.md)。
 | Case A | 慣例 3 枚（基準） | 3 | 96.0 mm | level3 (142k) | 1.94×10⁻⁶ | 9.0×10⁻⁸ | 1.00 |
 | Case A | 〃 | 3 | 96.0 mm | level4 (1.18M) | 1.58×10⁻⁶ | 5.2×10⁻⁸ | (0.81) |
 | **Case B** | **独自・翼端荷重 8 枚** | 8 | 90.8 mm | level3 (357k) | **2.92×10⁻⁶** | 7.4×10⁻⁸ | **1.50** |
-| Case C | 一から独自設計（テンプレート不使用） | — | ≤100 mm | — | Autodesk CFD で評価予定 | — | — |
+| Case C | **独自・7 段カスケード塔（テンプレート不使用）** | 14×7 | 98.0 mm | Autodesk CFD | **Autodesk CFD で評価予定** | — | — |
+
+> Case C は形状生成済み（[caseC.md](caseC.md), [geometry/caseC/caseC.step](../geometry/caseC/caseC.step)）。
+> 定量推力は A/B/C を **Autodesk CFD で同一設定**にて評価して確定する。
 
 > 公平比較は **同一 level 3** の Case A(1.94 µN) vs Case B(2.92 µN)。Case A の level4 は
 > メッシュ依存性確認用（−19 %）。絶対値には ±20 % 程度の不確かさがある。
@@ -36,16 +39,20 @@ Autodesk 移行 [10_autodesk_cfd.md](10_autodesk_cfd.md)。
 ## 次のステップ：Case C
 
 Case A/B は本リポジトリのパラメトリック生成器（NACA 断面ロフト）に基づく。**Case C は
-テンプレートを一切用いず**，Windows 上で **Autodesk Fusion API ＋ Autodesk CFD API** により
-CLAUDE が一から形状を設計・解析する。Case B で得た指針（翼端荷重・高ソリディティ・高キャンバ）を
-出発点に，自由曲面を含むより過激な揚力最大化形状を探索する。
+テンプレートを一切用いず**，Windows 上で **Autodesk Inventor 2025 COM API**（Fusion は当該
+環境に未導入のため Inventor を採用）により CLAUDE が一から形状を設計した
+（[scripts/caseC_inventor.py](../scripts/caseC_inventor.py)）。Case B の指針（翼端荷重・高
+ソリディティ・高キャンバ）に加え，**「動圧重み \(r^2\) に軸方向 z が現れない＝高さはタダ」**と
+いう第一原理から，**翼を 7 段積層して高さ 58 mm をフル活用**する「r² 重み体積カスケード塔」を
+設計した。掃引円板面積の約 5 倍の揚力面を包絡円筒内に詰め込んでいる。詳細は
+[caseC.md](caseC.md)。最終評価は **Autodesk CFD 2027** で A/B/C を同一設定で実施する。
 
 ## 制約充足の確認
 
-| 制約 | Case A | Case B |
-|---|---|---|
-| 直径 ≤ 100 mm | 96.0 mm ✓ | 90.8 mm ✓ |
-| 高さ ≤ 60 mm | 20.0 mm ✓ | 16.0 mm ✓ |
-| 100 rpm | ✓ | ✓ |
-| 2 ケース以上の比較 | ✓（A/B、さらに C を予定） | |
-| 1 つは完全独自形状 | Case B（さらに Case C） | |
+| 制約 | Case A | Case B | Case C |
+|---|---|---|---|
+| 直径 ≤ 100 mm | 96.0 mm ✓ | 90.8 mm ✓ | 98.96 mm ✓ |
+| 高さ ≤ 60 mm | 20.0 mm ✓ | 16.0 mm ✓ | 58.0 mm ✓ |
+| 100 rpm | ✓ | ✓ | ✓ |
+| 2 ケース以上の比較 | ✓（A/B/C の 3 形状を比較） | | |
+| 1 つは完全独自形状 | Case B（独自）／**Case C（テンプレート不使用の独自）** | | |

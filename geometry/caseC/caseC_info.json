@@ -1,0 +1,27 @@
+{
+  "bbox_dx_mm": 98.0,
+  "bbox_dy_mm": 98.96,
+  "bbox_dz_mm": 58.0,
+  "diameter_mm": 98.96,
+  "axial_extent_mm": 58.0,
+  "n_blades": 14,
+  "n_decks": 7,
+  "n_bodies": 1,
+  "fits_D100": true,
+  "fits_H60": true,
+  "params": {
+    "n_blades": 14,
+    "n_decks": 7,
+    "R_in": 4.0,
+    "R_tip": 49.0,
+    "chord_root": 1.2,
+    "chord_tip": 16.0,
+    "stagger_deg": 20.0,
+    "camber": 0.11,
+    "thickness": 1.0,
+    "deck_spacing": 8.3,
+    "z_base": 4.0,
+    "spindle_r": 6.0,
+    "height": 58.0
+  }
+}
