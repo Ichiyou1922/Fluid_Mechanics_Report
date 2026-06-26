@@ -27,3 +27,6 @@ __pycache__/
 *.ipt
 *.iam
 OldVersions/
+
+# --- CFD domain STEPs (large, regenerable via scripts/cfd_domain_inventor.py) #
+geometry/*/*_cfd.step

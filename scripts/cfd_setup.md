@@ -91,18 +91,36 @@ CFD 上で 2 つの流体ボリュームを作る（CAD プリミティブで作
 - 3 ケースの \(|F_z|\) を [reports/summary.md](../reports/summary.md) の表に記入し相対比較。
   **SST と層流の両方**で A→B→C の優劣順が一致するかを確認する。
 
-## 9. 自動化（任意）— CFD Python API
+## 9. 自動化 — CFD Python API（[scripts/cfd_run.py](cfd_run.py)）
 
-Autodesk CFD には Python API が同梱されている：
-`C:\Program Files\Autodesk\CFD 2027\Python\CFD\`（`Setup.py`, `Results.py`, `DC.py`, `DSE.py`
-と対応する `_*.pyd`）。**CFD アプリの埋め込み Python 上で、アクティブな解析スタディに対して**
-動く設計で、材料・回転領域・境界条件・メッシュ・実行・結果抽出をスクリプト化できる。
+Autodesk CFD には SWIG 製 Python API が同梱：`C:\Program Files\Autodesk\CFD 2027\Python\CFD\`
+（`Setup.py`, `Results.py` ＋ `_*.pyd`）。
 
-- 正確な呼び出しは **インストール先 Help 内「CFD API リファレンス」/ 公式 docs で確認**してから
-  使うこと（バージョン依存。憶測で呼ばない）。
-- API で賄えない工程は GUI で補い、材料・回転領域・BC・メッシュ・Solve・Results 抽出を
-  スクリプト化する方針。`Results.py` で \(F_z, M_z\) をバッチ抽出すれば 3 ケースの比較を
-  再現可能にできる。
+> **実行環境の制約（重要）**：この `.pyd` は CFD の**埋め込み Python 3.13** 向けにビルドされ、
+> ライブ CFD セッションを必要とする。外部の通常 Python（本リポジトリの 3.8）からは
+> **ABI 非互換で import 不可**。**Autodesk CFD → Script Editor（CFDScriptEditor）** から実行する。
+> 外部から駆動する COM 等の口は無い。ソルバは CPU 専用（§0）。
+
+### 実 API マップ（`Setup.py` / `Results.py` から抽出。憶測ではなく実メソッド名）
+
+| 工程 | 呼び出し |
+|---|---|
+| スタディ生成＋STEP取込 | `ds = Setup.DesignStudy.Create(); ds.createFrom("caseX_cfd.step")` |
+| シナリオ取得 | `scn = ds.getActiveScenario()` |
+| パーツ列挙（体積で prop/cyl/box 同定） | `scn.parts(pl)`, `part.volume()`, `part.boundingBox()` |
+| 材料（空気） | `air = scn.getMaterial("Air"); part.applyMaterial(air)` |
+| 回転領域 | `scn.applyMotion(m)`（`Motion`: `setAxisOfRotation(0,0,1)`, `setCenterOfRotation(...)`） |
+| 境界条件 | `scn.applyBoundaryCondition(bc, entities, ent_type)` |
+| メッシュ | `scn.automaticSize(); scn.mesh()`（局所細分化は `Mesh.meshEnahancement()`） |
+| ソルブ設定 | `scn.turbulence = <enum>; scn.iterations = N` |
+| 実行・待機 | `scn.run(); scn.wait()` |
+| 結果（推力・トルク） | `wr = Results.WallResults(res); wr.select(prop); wr.setTorqueAxisDirection(0,0,1); wr.setTorqueAxisPoint(0,0,zc); wr.calculate(); wr.force(); wr.torque()` |
+
+[scripts/cfd_run.py](cfd_run.py) が A/B/C をこの API で一括処理する雛形（同一設定、回転中心のみ
+ケース別）。**数か所（turbulence enum、Motion 生成、外周面 BC の面選択、Vector の添字、単位）は
+Script Editor 内で `print(dir(...))` 等で実値を確認してから確定**すること（`# CONFIRM` 印）。
+API で賄えない面選択等は GUI で補ってよい。`Results.WallResults` で \(F_z, M_z\) を 3 ケース
+バッチ抽出すれば比較を再現可能にできる。
 
 ## 10. 再現手順（概要）
 
