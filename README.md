@@ -1,87 +1,128 @@
 # Fluid_Mechanics_Report
 
+ドローン用プロペラの**揚力（回転軸 +Z 方向の推力 \(F_z\)）のみ**を最大化する設計課題．
+効率・トルク・騒音・強度・製造性・形状の自然さは，揚力と競合する場合は**一切無視してよい**．
+3 つの形状（Case A / B / C）を設計し，同一条件の CFD で揚力を比較する．
+
 ## リポジトリの目的
-1. FreeCADによるドローン用プロペラの揚力を最大化する事が第一の目的（注意: ただ揚力のみを最大化すれば良く，それ以外の一切のパラメータを無視する）
-2. PythonAPIを用いてFreeCADによる3Dソリッドの作成及びSTEPファイルの出力を行う．
-3. OpenFOAMによるメッシュ, controlDict, velocityなどのDictionaryを作成及びCFD計算を行う．
+1. ドローン用プロペラの揚力を最大化すること（**揚力のみ**を最大化し，それ以外の一切の
+   パラメータは無視する）．
+2. Python API による 3D ソリッドの生成と STEP ファイルの出力（A/B は FreeCAD，
+   C は Autodesk Inventor）．
+3. CFD によるメッシュ・境界条件等の設定と推力計算（OpenFOAM で予備検証し，**最終評価は
+   Autodesk CFD**）．
 
 ## 制約条件
-1. プロペラは直径10cm, 高さ6cmの円筒形内部に収まるものとする
-2. 回転数は100rpmとする
-3. プロペラは2ケース以上作成し比較する
+1. プロペラは**直径 10 cm，高さ 6 cm の円筒内**に収まること．
+2. 回転数は **100 rpm** とする．
+3. プロペラは **2 ケース以上**作成して比較する．
+4. うち 1 つは既存の参考文献・技術を考慮しない，**CLAUDE が最適と思う完全独自形状**とする
+   （形状の不自然さや揚力以外の数値は考慮しない．人間に理解不能な形状でも構わない）．
 
-## 追記事項
-- 本リポジトリではOpenFOAMを用いてCFD解析を行うが，最終的にはAutodesk CFDを使用して解析を行う．そのため各設定をAutodesk CFDへ流用可能なものとすること．また設定の仕方をreports/以下にマークダウンで明記すること．
-- 各プロペラに対して以下の事項をrepots/以下にマークダウンで明記すること
-    1. 設計のコンセプト（何に着目して比較するのか）
-    2. 計算条件（Reなどの流体相似則パラメータ，境界条件，メッシュなども含む）
-    3. 考察（揚力などの計算結果，流れ場の可視化，参考文献との比較など）
-    4. まとめ
-    5. 参考文献
-- プロペラのケースのうち一つは既存の参考文献や技術等を考慮しないCLAUDEが最適だと思うものにすること．すなわち形状の不自然さや揚力以外の数値を考慮しない，完全に独自のもので良い．人間に理解不能な形状でも構わない．
+## 報告要件（[reports/](reports/) 以下にマークダウンで）
+各プロペラについて，以下を順に明記する．
+1. 設計のコンセプト（何に着目して比較するのか）．
+2. 計算条件（Re などの相似則パラメータ，境界条件，メッシュなど）．
+3. 考察（揚力などの結果，流れ場の可視化，参考文献との比較）．
+4. まとめ．
+5. 参考文献．
+
+> 注：OpenFOAM の設定は **Autodesk CFD へ流用可能**なものとし，移行手順を
+> [reports/10_autodesk_cfd.md](reports/10_autodesk_cfd.md)，3 ケース統一の CFD 設定を
+> [scripts/cfd_setup.md](scripts/cfd_setup.md) に記す．
 
 ---
 
 ## ワークフロー
 
 ```
-FreeCAD (Python API)         OpenFOAM 12 (MRF, 予備検証)        Autodesk CFD (最終)
-  パラメトリック生成   ─STEP/STL─▶  メッシュ + 定常RANS  ──設定流用──▶  回転領域 + 定常RANS
-  揚力最大化形状を設計          推力 F_z を抽出（予備比較）           最終的な推力評価
+A / B :  FreeCAD (Python API, Linux)  ─STEP─▶  OpenFOAM 12 (MRF, 予備検証)  ┐
+                                                                            ├─▶  Autodesk CFD 2027
+C     :  Autodesk Inventor (COM API, Windows)  ─STEP─▶  （予備検証は省略）  ┘     （A/B/C 同一設定で最終評価）
 ```
 
-- **形状生成**：`scripts/propeller_gen.py`（FreeCAD ヘッドレス）で翼型断面（NACA4）を
-  半径方向にロフトしてブレードを作り，円形パターン＋ハブと融合して STEP/STL を出力。
-- **CFD（予備）**：OpenFOAM 12 の MRF（凍結ロータ）で定常推力を評価。設定は Autodesk CFD
-  の回転領域へ 1:1 で流用可能（[reports/10_autodesk_cfd.md](reports/10_autodesk_cfd.md)）。
-- **CFD（最終）**：Autodesk CFD。**Case C は別途 Windows 上で Autodesk Fusion API ＋
-  Autodesk CFD API により，本テンプレート（パラメトリック生成器）を用いず一から設計・解析する。**
+- **形状生成（A/B）**：[scripts/propeller_gen.py](scripts/propeller_gen.py)（FreeCAD ヘッドレス）で
+  NACA4 断面を半径方向にロフトし，円形パターン＋ハブと融合して STEP/STL を出力．
+- **形状生成（C）**：[scripts/caseC_inventor.py](scripts/caseC_inventor.py)（**Autodesk Inventor 2025
+  COM API**，Windows）で，**本テンプレートを一切用いず**一から設計・生成する．当初想定の Fusion は
+  当該環境に未導入のため Inventor を採用した．
+- **CFD（予備）**：OpenFOAM 12 の MRF（凍結ロータ）で A/B の定常推力を評価（[reports/00_method.md](reports/00_method.md)）．
+- **CFD（最終）**：**Autodesk CFD 2027** で **A/B/C を完全に同一設定**で評価する
+  （[scripts/cfd_setup.md](scripts/cfd_setup.md)）．座標系は全工程で **Z 軸 = 回転軸 = 推力方向**．
 
 ## ケース一覧
 
-| ケース | 設計コンセプト | 生成方法 | CFD |
+| ケース | 設計コンセプト | 生成方法 | 掃引径 / 高さ |
 |---|---|---|---|
-| **Case A** | 慣例的な 3 枚翼・準等ピッチ（基準形状） | FreeCAD テンプレート（[scripts/caseA.json](scripts/caseA.json)） | OpenFOAM MRF |
-| **Case B** | CLAUDE 独自の揚力最大化案：8 枚・翼端拡大（逆テーパー）の高ソリディティ・ロータ。動圧 ∝(ωr)² が翼端で最大という着眼で r²·c を最大化 | FreeCAD テンプレート（[scripts/caseB.json](scripts/caseB.json)） | OpenFOAM MRF |
-| **Case C** | **テンプレート不使用**。CLAUDE が一から（Autodesk Fusion/CFD API で）独自設計する揚力最大化形状 | Autodesk Fusion API（Windows） | Autodesk CFD |
+| **Case A** | 慣例的な 3 枚翼・準等ピッチ（基準形状） | FreeCAD テンプレート（[caseA.json](scripts/caseA.json)） | 96.0 / 20 mm |
+| **Case B** | CLAUDE 独自：8 枚・翼端拡大（逆テーパー）の高ソリディティ・ロータ．動圧 ∝(ωr)² が翼端で最大という着眼で \(r^2 c\) を最大化 | FreeCAD テンプレート（[caseB.json](scripts/caseB.json)） | 90.8 / 16 mm |
+| **Case C** | **テンプレート不使用の完全独自形状**：「r² 重み体積カスケード塔」．第一原理（推力/面積 ∝ r²，かつ r² 重みに軸方向 z が現れない＝高さはタダ）から，強キャンバ逆テーパー翼を **14 枚 × 7 段**積層し，高さ 60 mm をフル活用．掃引円板の約 5 倍の揚力面を内包 | **Autodesk Inventor COM API**（[caseC_inventor.py](scripts/caseC_inventor.py)） | 98.96 / 58 mm |
 
-各ケースの詳細レポートは [reports/](reports/) 以下：
-[caseA.md](reports/caseA.md) / [caseB.md](reports/caseB.md) / 共通手法 [00_method.md](reports/00_method.md) /
-Autodesk 移行 [10_autodesk_cfd.md](reports/10_autodesk_cfd.md)。
+詳細レポート：[caseA.md](reports/caseA.md) / [caseB.md](reports/caseB.md) / [caseC.md](reports/caseC.md)，
+共通手法 [00_method.md](reports/00_method.md)，総括 [summary.md](reports/summary.md)，
+Autodesk 移行 [10_autodesk_cfd.md](reports/10_autodesk_cfd.md)．
+
+## 現在の状態
+
+| 項目 | 状態 |
+|---|---|
+| Case A / B 形状・OpenFOAM 予備推力 | ✅ 完了（A: 1.94 µN，B: 2.92 µN，level3 同一条件） |
+| Case C 形状（独自設計，Inventor） | ✅ 完了（D=98.96 mm，H=58 mm，1 つの連結ソリッド） |
+| 各ケースのレポート | ✅ 完了 |
+| Autodesk CFD の統一設定・ドメイン生成・自動化雛形 | ✅ 準備完了 |
+| **Autodesk CFD による A/B/C の最終推力評価** | ⏳ **未実施**（ユーザ操作が必要．[下記手順](#autodesk-cfd-の実行手順ユーザ作業)参照） |
+
+> Case C の絶対推力は CFD 実行後に確定する．設計メトリクス上は A/B（単段）を上回る \(F_z\) を
+> 見込む（[caseC.md](reports/caseC.md)）．
 
 ## ディレクトリ構成
 
 ```
-scripts/        形状生成・ケース生成・レンダリング・後処理スクリプト
-  propeller_gen.py   FreeCAD パラメトリックプロペラ生成器（STEP/STL）
-  caseA.json/caseB.json  各ケースの設計パラメータ
-  gen_case.py        OpenFOAM MRF ケース一式を生成
-  render.py          STL から形状スクリーンショットを生成
-  thrust.py          forces.dat から推力 F_z・トルク M_z を抽出
-  run_freecad.sh     snap 版 FreeCAD をヘッドレス実行するラッパ
-geometry/<case>/   生成された STEP / STL / 形状情報(_info.json)
-cases/<case>/      OpenFOAM ケース（blockMesh+snappyHexMesh+MRF, foamRun）
-assets/            形状スクリーンショット（*_iso/_top/_side.png）
+scripts/
+  propeller_gen.py       FreeCAD パラメトリック生成器（A/B，STEP/STL）
+  caseA.json / caseB.json  A/B の設計パラメータ
+  gen_case.py            OpenFOAM MRF ケース一式を生成
+  thrust.py              forces.dat から推力 F_z・トルク M_z を抽出
+  run_freecad.sh         snap 版 FreeCAD をヘッドレス実行するラッパ
+  render.py              （Linux）STL から形状スクリーンショット
+  caseC_inventor.py      ★ Case C 生成器（Autodesk Inventor COM API，Windows）
+  render_inventor.py     ★ STEP を Inventor で開き A/B/C のスクショを統一描画
+  cfd_domain_inventor.py ★ CFD 用ドメイン（プロペラ＋回転円筒＋外箱）STEP を生成
+  cfd_run.py             ★ Autodesk CFD 自動化雛形（Script Editor で実行）
+  cfd_setup.md           ★ A/B/C 統一 CFD 設定・実 API マップ・手順
+geometry/<case>/   生成された STEP / 形状情報(_info.json)（*.ipt と *_cfd.step は .gitignore）
+cases/<case>/      OpenFOAM ケース（A/B の予備検証）
+assets/            形状スクリーンショット（*_iso/_top/_side.png，A/B/C とも Inventor 描画）
 reports/           マークダウンレポート
-results/           推力などの集計
 ```
+（★＝本フェーズで追加．Windows/Inventor + Autodesk CFD 用．）
 
 ## 再現手順
 
+### A/B（Linux：FreeCAD + OpenFOAM）
 ```bash
-# 形状生成 + スクリーンショット
 scripts/run_freecad.sh scripts/propeller_gen.py scripts/caseA.json
-python3 scripts/render.py caseA
-
-# OpenFOAM ケース生成 → メッシュ＋求解 → 推力抽出
 python3 scripts/gen_case.py caseA --rpm 100 --nprocs 8 --level 4
 cd cases/caseA && ./Allrun && cd -
 python3 scripts/thrust.py cases/caseA
 ```
 
+### C とスクショ・CFD ドメイン（Windows：Inventor）
+```powershell
+pip install pywin32
+python scripts/caseC_inventor.py            # geometry/caseC/caseC.step + スクショ
+python scripts/render_inventor.py caseA caseB   # A/B のスクショを Inventor で再描画
+python scripts/cfd_domain_inventor.py       # geometry/<case>/<case>_cfd.step を生成
+```
+
+### Autodesk CFD の実行手順（ユーザ作業）
+実ソルブは Autodesk CFD（GUI / Script Editor）でユーザが行う．詳細は
+[scripts/cfd_setup.md](scripts/cfd_setup.md)，本リポジトリ末尾の手順を参照．
+
 ## 必要環境
 
-- FreeCAD 1.x（snap 版を `freecad.cmd` で利用）
-- OpenFOAM 12（Foundation 版, `foamRun`/`snappyHexMesh`）
-- Python 3 + numpy / matplotlib（スクリーンショット）
-- （最終解析）Windows + Autodesk Fusion / Autodesk CFD
+- **A/B 生成**：FreeCAD 1.x（snap 版 `freecad.cmd`），OpenFOAM 12（Foundation 版），Python3 + numpy/matplotlib．
+- **C 生成・CFD 準備**：Windows + **Autodesk Inventor 2025**，Python 3 + **pywin32**．
+- **最終 CFD**：**Autodesk CFD 2027**．
+  - ★ **ソルバは CPU 専用**（GPU 高速化は非対応）．速度は CPU コア数（2ⁿ 並列）と RAM
+    （約 2 GB/100 万要素）で決まる．GPU（VRAM）は描画のみ．
