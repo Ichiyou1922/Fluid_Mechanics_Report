@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${{0%/*}}" || exit 1
+. "$WM_PROJECT_DIR/bin/tools/RunFunctions"
+
+# STL exported from FreeCAD is in mm -> scale to metres (idempotent: src kept)
+runApplication surfaceTransformPoints "scale=(0.001 0.001 0.001)" \
+    constant/geometry/propeller_mm.stl constant/geometry/propeller.stl
+
+runApplication blockMesh
+runApplication surfaceFeatures
+runApplication snappyHexMesh -overwrite
+runApplication topoSet
+
+runApplication decomposePar
+runParallel foamRun
+runApplication reconstructPar -latestTime
+
+# thrust (Z-force) history is in postProcessing/forces/*/force.dat
+echo "Done.  Thrust = Z-component of total force on patch 'propeller'."

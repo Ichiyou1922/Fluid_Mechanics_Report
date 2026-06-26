@@ -1,0 +1,10 @@
+{
+  "volume_mm3": 10583.6,
+  "bbox_dx_mm": 90.77,
+  "bbox_dy_mm": 90.77,
+  "bbox_dz_mm": 16.0,
+  "diameter_mm": 90.77,
+  "axial_extent_mm": 16.0,
+  "n_blades": 8,
+  "watertight_solid": true
+}

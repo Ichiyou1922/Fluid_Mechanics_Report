@@ -1,0 +1,13 @@
+case: cases/caseA
+  iterations run : 1500
+  Fx,Fy,Fz [N]   : 1.2113e-06  4.8479e-07  -1.5836e-06
+  Thrust |Fz| [N]: 1.5836e-06   (mgf-equiv: 0.000 g)
+  Torque Mz [N.m]: 5.1717e-08
+  pressure/viscous Fz: -1.6444e-06 / 6.0717e-08
+  Fz convergence (last 5):
+    t=1300    Fz=-1.7498e-06
+    t=1350    Fz=-1.6987e-06
+    t=1400    Fz=-1.6548e-06
+    t=1450    Fz=-1.6167e-06
+    t=1500    Fz=-1.5836e-06
+cells_level4: 1176516

@@ -1,0 +1,17 @@
+{
+  "name": "caseA",
+  "description": "Conventional 3-blade propeller, near-constant pitch, NACA-4412-like sections",
+  "n_blades": 3,
+  "hub_radius": 7.0,
+  "hub_height": 20.0,
+  "tip_radius": 48.0,
+  "root_embed": 3.0,
+  "n_sections": 14,
+  "le_offset": 0.25,
+  "ruled": true,
+  "camber_pos": 0.4,
+  "chord":     [[0.0, 16.0], [0.3, 22.0], [0.7, 18.0], [1.0, 11.0]],
+  "twist":     [[0.0, 34.0], [0.3, 26.0], [0.7, 15.0], [1.0, 10.0]],
+  "camber":    0.04,
+  "thickness": [[0.0, 0.12], [1.0, 0.08]]
+}
