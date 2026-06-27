@@ -18,7 +18,7 @@ A/B/C except the axial position, which follows each propeller's centre.
     python scripts/cfd_domain_inventor.py            # caseA caseB caseC
     python scripts/cfd_domain_inventor.py caseC
 
-Writes geometry/<case>/<case>_cfd.step. See scripts/cfd_setup.md.
+Writes geometry/<case>/<case>_cfd.step. See reports/11_autodesk_cfd_gui.md.
 """
 import os
 import sys

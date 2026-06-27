@@ -7,8 +7,8 @@ HOW TO RUN  (this CANNOT run from a normal Python interpreter):
   CFD's *embedded Python 3.13* and needs a live CFD session. Run this from
   **Autodesk CFD -> Script Editor (CFDScriptEditor)**, not from system Python.
 
-WHAT IT DOES (per case, all settings identical except geometry + rotating-region
-axial centre — see scripts/cfd_setup.md):
+WHAT IT DOES (per case, all settings identical except geometry — see
+reports/11_autodesk_cfd_gui.md):
   createFrom(<case>_cfd.step) -> Air to the cylinder+box fluid volumes, solid to
   the propeller -> rotating Motion 100 rpm about +Z on the cylinder -> 0 Pa on the
   outer box faces -> mesh (fine on blades) -> steady solve (SST k-w, then laminar)

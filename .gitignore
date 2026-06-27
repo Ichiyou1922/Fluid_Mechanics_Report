@@ -30,3 +30,15 @@ OldVersions/
 
 # --- CFD domain STEPs (large, regenerable via scripts/cfd_domain_inventor.py) #
 geometry/*/*_cfd.step
+
+# --- Autodesk CFD working data (study folders, meshes, solver jobs) --------- #
+# Created by Autodesk CFD next to the imported STEP; large, machine-local,
+# regenerable by re-running the GUI procedure (reports/11_autodesk_cfd_gui.md).
+geometry/*/*.stp
+geometry/*/*.cfz
+geometry/caseA/caseA/
+geometry/caseA/caseA_*/
+geometry/caseB/caseB/
+geometry/caseB/caseB_*/
+geometry/caseC/caseC/
+geometry/caseC/caseC_*/

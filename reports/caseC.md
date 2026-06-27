@@ -79,7 +79,7 @@ A/B が使い残した自由度を突く。
 [00_method.md](00_method.md) の共通条件（空気 ρ=1.225, ν=1.5×10⁻⁵, 100 rpm, 回転軸 +Z,
 回転領域＝MRF 相当の定常, 外周全圧 0）に従う。最終評価は **Autodesk CFD 2027** で、
 **Case A / B / C を完全に同一設定**で実施する（[10_autodesk_cfd.md](10_autodesk_cfd.md) 準拠、
-セットアップ自動化は [scripts/cfd_setup.md](../scripts/cfd_setup.md) / 関連スクリプト）。
+設定・操作・自動化は [11_autodesk_cfd_gui.md](11_autodesk_cfd_gui.md) / 関連スクリプト）。
 
 ### 相似則
 
