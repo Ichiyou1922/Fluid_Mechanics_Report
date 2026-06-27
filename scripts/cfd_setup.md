@@ -122,11 +122,24 @@ Autodesk CFD には SWIG 製 Python API が同梱：`C:\Program Files\Autodesk\C
 | 実行・待機 | `scn.run(); scn.wait()` |
 | 結果（推力・トルク） | `wr = Results.WallResults(res); wr.select(prop); wr.setTorqueAxisDirection(0,0,1); wr.setTorqueAxisPoint(0,0,zc); wr.calculate(); wr.force(); wr.torque()` |
 
-[scripts/cfd_run.py](cfd_run.py) が A/B/C をこの API で一括処理する雛形（同一設定、回転中心のみ
-ケース別）。**数か所（turbulence enum、Motion 生成、外周面 BC の面選択、Vector の添字、単位）は
-Script Editor 内で `print(dir(...))` 等で実値を確認してから確定**すること（`# CONFIRM` 印）。
-API で賄えない面選択等は GUI で補ってよい。`Results.WallResults` で \(F_z, M_z\) を 3 ケース
-バッチ抽出すれば比較を再現可能にできる。
+### 実測で確認できたこと（Script Editor 内）
+
+- **ジオメトリ取込は `createFrom()` ではなく `ds.createStudyFromAsmTranslator(step, studyName)`**。
+  `createFrom()` は `ValueError: sequence.index` で失敗する（拡張子非依存）。ASM トランスレータ
+  経由なら成功し，`<case>_cfd.step` の入れ子3ソリッドが **3 パーツ**として入る
+  （最内=プロペラ，中間=円筒，最外=外箱）。`part.volume()` は 0 を返すので，パーツ識別は
+  `part.boundingBox()` の大小で行う（小=prop，大=box）。
+- `scn.turbulence='On'`（既定），別途 `scn.turbModel` で乱流モデルを選ぶ。`scn.iterations=100`（既定）。
+- **`getMaterial('Air')` は None**。材料は `scn.materialOfType(...)` / `Material.Create(...)` で生成する。
+
+### 自動化の限界（重要）
+
+`turbModel` / 材料タイプ / `BoundaryCondition.pressureType` などの **enum 値は SWIG ラッパに
+定数として公開されておらず C++ 側にのみ存在**する（公開は `Units.CFDU_PRESSURE` 等ごく一部）。
+従って完全自動化には**未公開の整数 enum を総当たりで特定**する必要があり，現実的でない。
+**材料・回転・BC・乱流モデルの設定は GUI（ドロップダウン）で行うのが確実**（§1–§8）。
+[scripts/cfd_run.py](cfd_run.py) は API 構造の参考雛形として残す（`createStudyFromAsmTranslator`
+で取込までは確認済み）。`Results.WallResults`（`force()`/`torque()`）での結果抽出は API でも可。
 
 ## 10. 再現手順（概要）
 

@@ -56,7 +56,7 @@ def run_case(case, zc_mm, turbulence):
     print("=== %s <- %s ===" % (case, step))
 
     ds = Setup.DesignStudy.Create()
-    ds.createFrom(step)                                # import geometry + void fill
+    ds.createStudyFromAsmTranslator(step, case)        # import geometry (CONFIRMED)
     scn = ds.getActiveScenario()
 
     prop, cyl, box = classify_parts(scn)
