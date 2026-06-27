@@ -96,10 +96,16 @@ CFD 上で 2 つの流体ボリュームを作る（CAD プリミティブで作
 Autodesk CFD には SWIG 製 Python API が同梱：`C:\Program Files\Autodesk\CFD 2027\Python\CFD\`
 （`Setup.py`, `Results.py` ＋ `_*.pyd`）。
 
-> **実行環境の制約（重要）**：この `.pyd` は CFD の**埋め込み Python 3.13** 向けにビルドされ、
-> ライブ CFD セッションを必要とする。外部の通常 Python（本リポジトリの 3.8）からは
-> **ABI 非互換で import 不可**。**Autodesk CFD → Script Editor（CFDScriptEditor）** から実行する。
-> 外部から駆動する COM 等の口は無い。ソルバは CPU 専用（§0）。
+> **実行環境の制約（重要・実測で確認）**：この `.pyd` は CFD の **Python 3.13** 向けビルド。
+> - 外部の **Python 3.13**（`C:\Python313`）に `os.add_dll_directory(<CFD root>)` ＋
+>   `sys.path` に `<CFD>\Python` を追加すれば，**`import CFD.Setup` / `CFD.Results` は成功する**
+>   （クラス `DesignStudy`, `WallResults` 等にアクセス可）。Python 3.8 では ABI 非互換で不可。
+> - **ただし `Setup.DesignStudy.Create()` を外部プロセスで呼ぶと 0xC0000005（アクセス違反）で
+>   即クラッシュ**する。API は `DSE`（Design Study Environment＝アプリのメインウィンドウ）に
+>   依存し，**CFD 本体が初期化したアプリ文脈が必須**（ヘッドレス用の Initialize/connect は無い）。
+> - ⇒ **完全ヘッドレス自動化は不可**。`cfd_run.py` は **Autodesk CFD 本体を起動した状態で，
+>   その内蔵 Script Editor（CFDScriptEditor）から実行**する（その文脈なら import 済みで駆動可）。
+>   外部から駆動する COM 等の口は無い。ソルバは CPU 専用（§0）。
 
 ### 実 API マップ（`Setup.py` / `Results.py` から抽出。憶測ではなく実メソッド名）
 
