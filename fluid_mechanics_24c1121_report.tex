@@ -2,7 +2,7 @@
 
 
 % 数式
-\usepackage{amsmath,amsfonts}
+\usepackage{amsmath,amsfonts,amssymb}
 \usepackage{bm}
 % 画像
 \usepackage[dvipdfmx]{graphicx}
@@ -10,21 +10,325 @@
 
 \begin{document}
 
-\title{流体力学レポート}
+\title{流体力学レポート\\ \large 回転翼プロペラの揚力最大化設計とその数値流体解析}
 \author{24c1121 茂木一葉}
 \date{\today}
 \maketitle
 
 \section{目的}
 
+ドローン用プロペラについて，\textbf{揚力（回転軸 $+Z$ 方向の推力 $F_z$）のみを最大化}する形状を
+設計し，数値流体解析（CFD）でその揚力を比較・評価することを目的とする．効率・トルク・騒音・
+強度・製造性・形状の自然さは，揚力と競合する場合は一切無視してよいものとする．
+
+制約条件は次の通りである．
+
+\begin{itemize}
+  \item プロペラは\textbf{直径 $100$ mm，高さ $60$ mm の円筒内}に収まること．
+  \item 回転数は\textbf{$100$ rpm} に固定する．
+  \item プロペラを\textbf{2 ケース以上}作成して比較すること．
+  \item うち 1 つは既存の参考文献・技術を考慮しない\textbf{完全独自形状}とする
+        （形状の不自然さは問わない）．
+\end{itemize}
+
+本レポートでは，基準となる慣例的形状（Case A）と，揚力のみを追求した 2 つの独自形状
+（Case B，Case C）の計 3 形状を設計し，同一条件の CFD で揚力を比較する．
+
 \section{理論}
+
+\subsection{回転翼の揚力と動圧の半径依存}
+
+回転翼の半径 $r$ の位置にある翼素は，速度 $U=\omega r$ で空気を切る（$\omega$ は角速度）．
+このとき翼素まわりの動圧は
+\begin{equation}
+  q=\tfrac{1}{2}\rho\,(\omega r)^2
+\end{equation}
+であり，翼素が生む揚力 $dL$ は翼弦 $c(r)$，揚力係数 $C_L$ を用いて
+\begin{equation}
+  dL \propto \tfrac{1}{2}\rho\,(\omega r)^2\,c(r)\,C_L\,dr
+\end{equation}
+と書ける．その回転軸方向成分が推力（揚力）$F_z$ である．ここから揚力最大化の指針として
+次の 2 点が導かれる．
+
+\begin{enumerate}
+  \item \textbf{単位面積あたりの揚力は $r^2$ に比例する}．したがって翼面積は外周（翼端）ほど
+        価値が高く，\textbf{翼端に面積を集中}させるほど総揚力が大きくなる
+        （$\int r^2 c(r)\,dr$ の最大化）．
+  \item \textbf{重み $r^2$ には軸方向座標 $z$ が現れない}．すなわち軸方向は「タダの土地」であり，
+        高さ方向に翼面を積層するたびに，ほぼ同じ $r^2$ 重みの揚力が線形に上乗せされる．
+        効率・後流干渉を無視できる本課題では，\textbf{包絡円筒の高さ $60$ mm を積層で
+        埋めるほど有利}である．
+\end{enumerate}
+
+\subsection{相似則パラメータ}
+
+回転数 $n=100\,\mathrm{rpm}=1.667\,\mathrm{rev/s}=10.47\,\mathrm{rad/s}$，空気
+$\rho=1.225\,\mathrm{kg/m^3}$，$\nu=1.5\times10^{-5}\,\mathrm{m^2/s}$ とする．翼端
+（$R\approx0.05$ m）での代表値は
+
+\begin{itemize}
+  \item 翼端速度 $U_{tip}=\omega R \approx 0.52\,\mathrm{m/s}$，マッハ数
+        $M\approx0.0015\ (\ll0.3)$．物理的には完全な\textbf{非圧縮流れ}である．
+  \item 翼弦レイノルズ数 $Re_c=U_{tip}c/\nu \approx 5\times10^{2}$．
+        \textbf{低レイノルズ数（層流〜遷移域）}であり，粘性の影響が大きい．
+  \item 推力係数 $C_T=F_z/(\rho n^2 D^4)$，$\rho n^2 D^4\approx2.9\times10^{-4}\,\mathrm{N}$．
+\end{itemize}
+
+$100$ rpm という低回転のため，絶対推力は数 $\mu$N オーダーと極めて小さい．本課題の目的は
+\textbf{形状間の揚力の相対比較}であり，絶対値の大小ではなく差に意味がある．
+
+\subsection{回転場の非定常性と数値安定性}
+
+回転翼まわりの流れは時間とともに変化する非定常流であり，本解析では物体（プロペラ）が
+物体座標系に対して無限回転する問題として\textbf{非定常解析}で扱う．マッハ数は極小であるが，
+\textbf{運動を伴う計算では圧縮性流れにした方が数値的に安定}しやすい（後述）．結果は非圧縮と
+ほぼ一致する．
 
 \section{内容及び方法}
 
+\subsection{3 つの設計}
+
+\paragraph{Case A（慣例的 3 枚翼・基準形状）}
+教科書的なプロペラを基準（0 点）として用意した．枚数 3，半径方向に準等ピッチ，翼型は
+NACA 4 桁系（キャンバ $4\%$），翼弦は翼端でテーパする一般的な分布である．
+
+\paragraph{Case B（独自・翼端荷重型 8 枚翼）}
+理論の帰結 1（揚力は翼端で稼ぐ）に基づき，慣例と逆に\textbf{翼端拡大（逆テーパー）}とした．
+翼弦を根元 $14$ mm $\to$ 翼端 $28$ mm と翼端ほど広くし，枚数を $8$ 枚に増やして
+ソリディティ（掃引面内の翼面積比）を最大化，さらに低 $Re$ でも高 $C_L$ を得るため強キャンバ
+（$7\%$）を与えた．「翼端が膨らんだ 8 枚羽根の高密度ファン」という慣例設計には無い形状である．
+
+\paragraph{Case C（独自・テンプレート不使用・7 段カスケード塔）}
+本リポジトリのパラメトリック生成器を一切用いず，理論の帰結のみから一から設計した完全独自形状
+である．帰結 2（軸方向はタダ）を最大限に活かし，強キャンバ翼を\textbf{軸方向に 7 段積層}して
+高さ $58$ mm をフル活用する「$r^2$ 重み体積カスケード塔」とした．各段は $14$ 枚の極端な逆テーパー
+翼（根元 $1.2$ mm $\to$ 翼端 $16$ mm）からなり，計 $98$ 枚の翼を中心スピンドルに融合した
+単一ソリッドである．掃引円板面積の\textbf{約 5 倍}の揚力面を包絡円筒内に詰め込んでいる．
+
+\begin{table}[htbp]
+  \centering
+  \caption{3 ケースの主要諸元}
+  \begin{tabular}{l|ccc}
+    \hline
+    項目 & Case A & Case B & Case C \\
+    \hline
+    枚数 & 3 & 8 & $14\times7=98$ \\
+    掃引直径 & $96.0$ mm & $90.8$ mm & $98.96$ mm \\
+    軸方向寸法 & $20$ mm & $16$ mm & $58$ mm \\
+    翼弦（根$\to$端） & $16\to11$ mm & $14\to28$ mm & $1.2\to16$ mm \\
+    キャンバ & $4\%$ & $7\%$ & $11\%$ \\
+    設計方針 & 慣例（基準） & 翼端荷重・高密度 & 多段積層・全高活用 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{minipage}{0.32\textwidth}\centering
+    \includegraphics[width=\textwidth]{assets/caseA_iso.png}\\ (a) Case A
+  \end{minipage}
+  \begin{minipage}{0.32\textwidth}\centering
+    \includegraphics[width=\textwidth]{assets/caseB_iso.png}\\ (b) Case B
+  \end{minipage}
+  \begin{minipage}{0.32\textwidth}\centering
+    \includegraphics[width=\textwidth]{assets/caseC_iso.png}\\ (c) Case C
+  \end{minipage}
+  \caption{3 ケースのアイソメ図．(a) 慣例 3 枚翼，(b) 翼端荷重 8 枚翼，(c) 7 段カスケード塔．}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.45\textwidth]{assets/caseC_side.png}
+  \caption{Case C の側面図．強キャンバ翼を 7 段積層し，高さ $58$ mm をフル活用している．}
+\end{figure}
+
+\subsection{形状生成}
+
+形状はすべて GUI で手作業せず，スクリプトから再現可能に生成した．Case A／B は FreeCAD の
+Python API で NACA 断面を半径方向にロフトし，円形パターンとハブを融合して STEP を出力した．
+Case C は当該環境に Fusion が未導入のため，\textbf{Autodesk Inventor 2025 の COM API}
+（pywin32）でロフト・円形パターン・矩形パターン（段積み）・ブール和を用い，テンプレート
+不使用で一から生成した．制約充足（直径 $<100$，高さ $<60$）はプログラムで検証した．
+
+\subsection{CFD 解析手法}
+
+\paragraph{予備解析（OpenFOAM 12，MRF）}
+Case A／B はまず OpenFOAM 12 の MRF（Multiple Reference Frame，凍結ロータ）法で定常評価した．
+プロペラを内包する円筒セルゾーンに回転の体積力を与え，翼面を no-slip 壁とする定常解析である．
+オーダーの妥当性確認とメッシュ依存性の把握に用いた．
+
+\paragraph{最終解析（Autodesk CFD 2027，非定常）}
+最終評価は Autodesk CFD 2027 で，A／B／C を\textbf{完全に同一設定}で行う．授業資料
+（回転翼の非定常計算）に準拠し，主要設定は次の通りである．
+
+\begin{itemize}
+  \item \textbf{計算領域}：プロペラ＋外箱（$\pm180\times\pm180\times\pm300$ mm）の 2 ボリューム．
+        回転はプロペラ（ソリッド）に与え CFD が周囲空気を回すため，回転用の流体円筒は不要．
+  \item \textbf{材料}：プロペラ＝固体，外箱＝空気．
+  \item \textbf{モーション}：プロペラに回転運動，軸 $+Z\,(0,0,1)$，中心 $(0,0,0)$，
+        一定角速度 $\bm{10.472\,\mathrm{rad/s}}$（$=100$ rpm．授業資料の $628\,\mathrm{rad/s}$ は
+        $100$ rps 用であり本件とは異なる）．
+  \item \textbf{境界条件}：外箱の全外面をゲージ圧 $0$ Pa（ホバリング開放），翼壁は no-slip．
+  \item \textbf{メッシュ}：自動メッシュ（約 $40$ 万要素）．3 ケースで同一方針．
+  \item \textbf{解析モード}：非定常解析．時間刻み $dt=\bm{0.003}$ s（$=1.8^\circ/\mathrm{step}$），
+        実行ステップ数 $200$（$1$ 回転，安定確認）$\to$ $400$（$2$ 回転，結果用），
+        内部反復係数 $3$，終了時刻 $-1$，インテリジェント解析制御は無効．
+  \item \textbf{流れ}：圧縮性流体（全温度 $\approx300$ K，伝熱オフ）で安定化．
+        乱流モデルは\textbf{まず層流}（$Re\approx500$ で物理的に妥当），その後 SST $k\text{-}\omega$
+        でも再計算して感度を確認する．
+  \item \textbf{推力抽出}：壁面計算機は使えないため，出力 CSV の Hydraulic Force$Z$（dyne）を
+        最終 1 回転で平均し，$\times10^{-5}$ して $|F_z|$ [N] とする．
+\end{itemize}
+
+\paragraph{数値安定化の経緯}
+当初の非圧縮・$dt=0.006$ s（$3.6^\circ/\mathrm{step}$）・内部反復 1$\sim$2 では，回転に伴う
+1 ステップあたりのメッシュ歪みが大きく，計算が途中で発散した（SST で約 66 ステップ，
+層流で約 167 ステップ）．対策として，\textbf{(1) $dt$ を $0.003$ s（$1.8^\circ/\mathrm{step}$，
+授業資料と同じ安定寄り）に半減，(2) 流れを圧縮性に変更（授業資料の助言），
+(3) 内部反復を 3 に増加}したところ安定し，発散せずに回転を継続できるようになった．
+
 \section{環境/使用機器}
+
+\begin{itemize}
+  \item \textbf{形状生成}：FreeCAD 1.x（Python API，Case A/B），Autodesk Inventor 2025
+        （COM API ＋ pywin32，Case C），Python 3．
+  \item \textbf{予備 CFD}：OpenFOAM 12（Foundation 版，\texttt{foamRun}/\texttt{incompressibleFluid}，
+        MRF）．
+  \item \textbf{最終 CFD}：Autodesk CFD 2027（非定常・圧縮性）．
+  \item \textbf{計算機}：Windows 11，CPU 並列（ソルバは $2^n$ コアを利用）．Autodesk CFD の
+        ソルバは\textbf{CPU 専用}（GPU 高速化は非対応）であり，速度は CPU コア数と RAM
+        （目安 約 $2$ GB／$100$ 万要素）で決まる．本解析の約 $40$ 万要素では RAM は問題にならない．
+\end{itemize}
 
 \section{結果}
 
+\subsection{制約充足}
+
+\begin{table}[htbp]
+  \centering
+  \caption{制約条件の充足確認}
+  \begin{tabular}{l|ccc}
+    \hline
+    制約 & Case A & Case B & Case C \\
+    \hline
+    直径 $\le100$ mm & $96.0$ \checkmark & $90.8$ \checkmark & $98.96$ \checkmark \\
+    高さ $\le60$ mm & $20.0$ \checkmark & $16.0$ \checkmark & $58.0$ \checkmark \\
+    $100$ rpm & \checkmark & \checkmark & \checkmark \\
+    \hline
+  \end{tabular}
+\end{table}
+
+3 形状とも包絡円筒の制約を満たす．特に Case C は高さ $58$ mm と，A／B（$16$--$20$ mm）の
+約 3 倍の軸方向を活用している．
+
+\subsection{予備解析（OpenFOAM，MRF，同一 level 3）}
+
+\begin{table}[htbp]
+  \centering
+  \caption{OpenFOAM 予備推力（$100$ rpm，空気，MRF）}
+  \begin{tabular}{l|ccc}
+    \hline
+    ケース & メッシュ & 推力 $|F_z|$ [N] & 推力比 \\
+    \hline
+    Case A（3 枚，基準） & level 3 ($142$k) & $1.94\times10^{-6}$ & $1.00$ \\
+    Case A（参考・細メッシュ） & level 4 ($1.18$M) & $1.58\times10^{-6}$ & $(0.81)$ \\
+    \textbf{Case B（独自・8 枚）} & level 3 ($357$k) & $\bm{2.92\times10^{-6}}$ & $\bm{1.50}$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
+同一の level 3 条件で，\textbf{Case B は基準 Case A の約 $+50\%$ の揚力}を示した．独自設計の
+狙い（翼端への面積集中＋高ソリディティ）が予備解析の段階で奏功している．Case A は
+メッシュを細かくすると推力が約 $-19\%$ 変化し，絶対値には $\pm20\%$ 程度の不確かさがある．
+
+\subsection{最終解析（Autodesk CFD）}
+
+最終評価は A／B／C を同一設定で Autodesk CFD により実施中である．数値安定化（$dt=0.003$ s，
+圧縮性，内部反復 3）により発散せず回転を継続できることを確認した（$200$ ステップを超えて
+安定に進行）．確定した $|F_z|$（層流および SST $k\text{-}\omega$）は CSV の Hydraulic Force$Z$ を
+最終 1 回転で平均して求め，下表に追記して 3 形状の最終比較とする．
+
+\begin{table}[htbp]
+  \centering
+  \caption{Autodesk CFD 最終推力（A/B/C 統一設定，評価中）}
+  \begin{tabular}{l|cc}
+    \hline
+    ケース & $|F_z|$（層流）[N] & $|F_z|$（SST）[N] \\
+    \hline
+    Case A & （評価中） & （評価中） \\
+    Case B & （評価中） & （評価中） \\
+    Case C & （評価中） & （評価中） \\
+    \hline
+  \end{tabular}
+\end{table}
+
 \section{考察}
+
+\subsection{揚力最大化のための設計指針}
+
+予備解析と第一原理から，揚力最大化の指針として次が得られた．
+
+\begin{itemize}
+  \item \textbf{翼端に翼面積を集中}させる（逆テーパー）．動圧 $\propto(\omega r)^2$ ゆえ翼端が効く．
+  \item \textbf{ソリディティを上げる}（干渉しない範囲で枚数・翼弦を最大化）．
+  \item \textbf{キャンバを強く}して低 $Re$ でも高 $C_L$ を確保する．
+  \item \textbf{軸方向に積層}して高さをフル活用する（$r^2$ 重みに $z$ が現れない）．
+\end{itemize}
+
+Case B はこのうち前 3 者を実装して基準比 $+50\%$ を達成した．Case C はさらに第 4 の指針
+（軸方向積層）を加え，掃引円板の約 5 倍の揚力面を内包する．揚力は概ね「$r^2$ 重みの翼面積」に
+比例するため，Case C は\textbf{原理的に A／B を上回る $F_z$ を見込む}．ただし高ソリディティで
+翼間流路が狭く，極端だと流れが詰まって（ブロッケージ）期待ほど質量流束が伸びない可能性があり，
+段間隔 $8.3$ mm を確保して各段が機能する余地を残した．最終的な優劣は CFD で確定する．
+
+\subsection{低レイノルズ数ゆえの数値的注意}
+
+$Re\approx500$ と低く，予備解析ではメッシュ依存性（Case A で $-19\%$）と，低推力（数 $\mu$N）
+ゆえの数値ノイズ（Case A では本来ゼロのはずの横力が推力と同オーダーで残存）が見られた．
+これは絶対値の議論に限界があることを意味し，乱流モデル依存も出やすい．そこで最終評価では
+\textbf{層流と SST $k\text{-}\omega$ の両方}で計算し，A$\to$B$\to$C の優劣順がモデルに依らないことを
+確認する方針とした．
+
+\subsection{回転場 CFD の数値安定性}
+
+本解析で最大の技術的課題は，回転するプロペラの非定常計算の安定性であった．$100$ rpm と
+低速ながら，動くソリッドがメッシュを通過する際の 1 ステップあたりの回転量が大きいと発散する．
+対策として時間刻みを $1.8^\circ/\mathrm{step}$ まで細かくし（授業資料と同じ安定重視の選択），
+圧縮性流れ（マッハ数は極小だが運動を伴う計算を安定化する）と内部反復の増加を併用することで，
+安定に回転を継続できた．これは「精度を多少犠牲にしても安定性を優先する」という回転翼 CFD の
+実務的な勘所を示している．
+
+\subsection{まとめ}
+
+\begin{itemize}
+  \item 揚力のみを最大化する観点から，慣例形状（A）と 2 つの独自形状（B：翼端荷重 8 枚翼，
+        C：テンプレート不使用の 7 段カスケード塔）を設計し，すべて包絡円筒の制約を満たした．
+  \item 予備解析（OpenFOAM）で\textbf{独自形状 Case B が基準比 $+50\%$ の揚力}を達成し，
+        「翼端集中・高ソリディティ・強キャンバ」の有効性を確認した．
+  \item Case C は「軸方向はタダ」という第一原理から高さ方向を積層で活用し，掃引円板の約 5 倍の
+        揚力面を内包する．A／B を上回る揚力を原理的に期待する．
+  \item 最終評価は Autodesk CFD で A／B／C を同一設定（非定常・圧縮性・$dt=0.003$ s・層流／SST）で
+        実施中であり，数値安定化の手当てにより発散せず計算を進められることを確認した．
+        確定した $|F_z|$ を結果表に追記して最終比較とする．
+\end{itemize}
+
+\section{参考文献}
+
+\begin{enumerate}
+  \item J. G. Leishman, \textit{Principles of Helicopter Aerodynamics}, 2nd ed.,
+        Cambridge Univ. Press, 2006.（ロータ空力・動圧の半径依存・誘起流入）
+  \item W. Johnson, \textit{Helicopter Theory}, Dover, 1994.（高ソリディティロータ・
+        アクチュエータディスク）
+  \item S. F. Hoerner, \textit{Fluid-Dynamic Lift}, 1985.（キャンバ翼の最大揚力・低 $Re$）
+  \item N. A. Cumpsty, \textit{Compressor Aerodynamics}, Krieger, 2004.（多段軸流カスケードの
+        段加算・段間干渉）
+  \item I. H. Abbott, A. E. von Doenhoff, \textit{Theory of Wing Sections}, Dover, 1959.（NACA 翼型）
+  \item OpenFOAM Foundation, \textit{OpenFOAM v12 User Guide}（MRF, \texttt{incompressibleFluid},
+        \texttt{snappyHexMesh}, \texttt{forces}）.
+  \item Autodesk, \textit{CFD 2027 Help} — Transient / Rotating Motion / Compressible /
+        Solution Control.
+  \item Autodesk, \textit{Inventor 2025 API / Programming Help}（COM 自動化）.
+  \item 授業資料「AUTODESK CFD を使った数値流体解析 5」（回転翼の非定常計算）, 2026.
+\end{enumerate}
 
 \end{document}
