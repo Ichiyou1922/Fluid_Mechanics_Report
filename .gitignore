@@ -31,6 +31,10 @@ OldVersions/
 # --- CFD domain STEPs (large, regenerable via scripts/cfd_domain_inventor.py) #
 geometry/*/*_cfd.step
 
+# --- Large CFD result media (animations); keep PNG figures + CSV data --------- #
+*.avi
+*.vtfx
+
 # --- Autodesk CFD working data (study folders, meshes, solver jobs) --------- #
 # Created by Autodesk CFD next to the imported STEP; large, machine-local,
 # regenerable by re-running the GUI procedure (reports/11_autodesk_cfd_gui.md).
